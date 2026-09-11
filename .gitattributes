@@ -1,0 +1,35 @@
+# 换行符统一：仓库里一律存 LF。
+# 没有这个文件时，Windows 上 core.autocrlf=true 会把 CRLF 规范化成 LF，
+# 导致「本地文件和远端字节完全一致」却算出整文件全改的假差异（踩过：node_info.js 731 行假改动）。
+* text=auto eol=lf
+
+# 文本类，明确一下更稳
+*.py    text
+*.js    text
+*.json  text
+*.md    text
+*.txt   text
+*.toml  text
+*.yml   text
+*.yaml  text
+
+# Windows 脚本必须保留 CRLF，否则 .bat/.cmd 可能不执行
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# 二进制：一律不碰
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.zip   binary
+*.7z    binary
+*.pt    binary
+*.pth   binary
+*.onnx  binary
+*.safetensors binary
+*.woff  binary
+*.woff2 binary

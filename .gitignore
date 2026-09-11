@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 打包 / 构建产物
+# 注意：若你的节点靠 dist/ 或 build/ 里的产物运行，把这两行删掉再上传
+*.zip
+*.7z
+dist/
+build/
+
+# 日志 / 临时文件
+*.log
+*.tmp
+*.bak
+
+# 模型权重（体积大，一般不入库）
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# 注意：绝对不要忽略 .git —— 它是本地提交历史的命根子
