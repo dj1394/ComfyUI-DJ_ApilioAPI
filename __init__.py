@@ -125,20 +125,23 @@ class ApilioImageNode:
     NO_PROXY = {"http": None, "https": None}
 
     _SIZE_MAP = {
-        ("1:1", "1K"): "1024x1024", ("1:1", "2K"): "2048x2048", ("1:1", "4K"): "4096x4096",
-        ("2:3", "1K"): "682x1024", ("2:3", "2K"): "1365x2048", ("2:3", "4K"): "2730x4096",
-        ("3:2", "1K"): "1024x682", ("3:2", "2K"): "2048x1365", ("3:2", "4K"): "4096x2730",
-        ("3:4", "1K"): "864x1152", ("3:4", "2K"): "1728x2304", ("3:4", "4K"): "3072x4096",
-        ("4:3", "1K"): "1152x864", ("4:3", "2K"): "2304x1728", ("4:3", "4K"): "4096x3072",
-        ("4:5", "1K"): "819x1024", ("4:5", "2K"): "1638x2048", ("4:5", "4K"): "3276x4096",
-        ("5:4", "1K"): "1024x819", ("5:4", "2K"): "2048x1638", ("5:4", "4K"): "4096x3276",
-        ("9:16", "1K"): "720x1280", ("9:16", "2K"): "1440x2560", ("9:16", "4K"): "2160x3840",
-        ("16:9", "1K"): "1280x720", ("16:9", "2K"): "2560x1440", ("16:9", "4K"): "3840x2160",
-        ("21:9", "1K"): "1456x624", ("21:9", "2K"): "3024x1296", ("21:9", "4K"): "4096x1728",
+        ("1:1", "2K"): "2048x2048", ("1:1", "4K"): "4096x4096",
+        ("2:3", "2K"): "1365x2048", ("2:3", "4K"): "2730x4096",
+        ("3:2", "2K"): "2048x1365", ("3:2", "4K"): "4096x2730",
+        ("3:4", "2K"): "1728x2304", ("3:4", "4K"): "3072x4096",
+        ("4:3", "2K"): "2304x1728", ("4:3", "4K"): "4096x3072",
+        ("4:5", "2K"): "1638x2048", ("4:5", "4K"): "3276x4096",
+        ("5:4", "2K"): "2048x1638", ("5:4", "4K"): "4096x3276",
+        ("9:16", "2K"): "1440x2560", ("9:16", "4K"): "2160x3840",
+        ("16:9", "2K"): "2560x1440", ("16:9", "4K"): "3840x2160",
+        ("21:9", "2K"): "3024x1296", ("21:9", "4K"): "4096x1728",
     }
+
+    _SIZE_CHOICES = ("2K", "4K")
 
     _MODEL_MAPPING = {
         "gpt-image-2": "gpt-image-2",
+        "gpt-image-2.5-sunburst": "gpt-image-2.5-sunburst",
     }
 
     _RATIO_FLOATS = {
@@ -154,8 +157,8 @@ class ApilioImageNode:
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": ""}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
-                "model_type": (["gpt-image-2"], {"default": "gpt-image-2"}),
-                "image_size": (["1K", "2K", "4K"], {"default": "2K"}),
+                "model_type": (["gpt-image-2", "gpt-image-2.5-sunburst"], {"default": "gpt-image-2"}),
+                "image_size": (["2K", "4K"], {"default": "2K"}),
                 "aspect_ratio": (["auto", "1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"], {"default": "auto"}),
             },
             "optional": {
@@ -165,10 +168,25 @@ class ApilioImageNode:
             },
         }
 
+    @classmethod
+    def VALIDATE_INPUTS(cls, image_size):
+        # 只接管 image_size 的校验：老工作流里存的 "1K" 直接放行，
+        # 由 generate_images 兜底纠正，不弹红框报错。
+        return True
+
     def generate_images(self, prompt, api_key, model_type, image_size, aspect_ratio, seed=-1, 生成后控制="randomize", **kwargs):
         start_time = time.time()
         tid = f"T-{random.randint(10, 99)}"
         api_key = api_key.strip()
+
+        if image_size not in self._SIZE_CHOICES:
+            log_custom(
+                "⚠",
+                f"尺寸档位 {image_size!r} 已停用（现只有 2K / 4K），本次自动改用 {self._SIZE_CHOICES[0]}",
+                tid,
+                ConsoleColor.YELLOW,
+            )
+            image_size = self._SIZE_CHOICES[0]
 
         if not api_key:
             return (draw_error_image("未填写 API Key"), "", "failed", "Missing API Key")
